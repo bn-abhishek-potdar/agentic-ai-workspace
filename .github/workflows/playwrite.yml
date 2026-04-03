@@ -24,7 +24,7 @@ jobs:
       # ----------------------------
       # Install Dependencies added
       # ----------------------------
-      - name: Install Dependencies for node modules
+  - name: Install Dependencies for node modules
         run: npm install
 
       # ----------------------------
