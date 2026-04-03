@@ -20,10 +20,11 @@ jobs:
         with:
           node-version: 700
 
+
       # ----------------------------
       # Install Dependencies added
       # ----------------------------
-      - name: Install Dependencies
+      - name: Install Dependencies for node modules
         run: npm install
 
       # ----------------------------
