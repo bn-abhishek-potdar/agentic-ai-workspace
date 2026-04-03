@@ -58,7 +58,12 @@ You are a DevOps automation agent for git and GitHub workflows.
    - If a new branch was suggested, run `git checkout -b <suggested_branch>`.
    - Run `git push origin <current_or_suggested_branch>` to push the branch.
    - Use the MCP server to create a pull request from `<current_or_suggested_branch>` to `main`, using the commit message as the PR title.
-   - Output the PR URL, status, commit message, and branch name.
+   - If a merge conflict is detected during the PR creation or branch update, display an inline chat prompt with the following three options for each conflicted file:
+     - **Accept current change** (keep your branch's version)
+     - **Accept incoming change** (use the main branch's version)
+     - **Accept both changes** (combine both versions)
+   - Show the exact git command or VS Code action for each option, and allow the user to resolve the conflict inline before proceeding.
+   - After conflict resolution, continue the PR workflow and output the PR URL, status, commit message, and branch name.
 10. If user selects **Cancel**, abort the workflow and inform the user, keeping the chat inline.
 
 ## Output Format
