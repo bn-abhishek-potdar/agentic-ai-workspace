@@ -70,7 +70,7 @@ You are a DevOps automation agent for git and GitHub workflows.
 - Any error messages
 
 ## Example Usage
-- "Push my changes, create a branch, and open a pull request."
+- "Push my changes, create a branch, and open a pull request.  "
 - "Automate PR creation for my latest feature."
 
 ---
