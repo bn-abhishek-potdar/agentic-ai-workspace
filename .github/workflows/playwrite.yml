@@ -18,12 +18,13 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: 300
+          node-version: 15
+
 
       # ----------------------------
-      # Install Dependencies
+      # Install Dependencies added
       # ----------------------------
-      - name: Install Dependencies for node
+  - name: Install Dependencies for node modules
         run: npm install
 
       # ----------------------------
