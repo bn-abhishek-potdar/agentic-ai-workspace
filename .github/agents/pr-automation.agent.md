@@ -2,7 +2,7 @@
 name: PR Automation Agent
 description: Automates git pull, staging, commit, push from current branch, and pull request creation using MCP server.
 tools:
-  allow: [run_in_terminal, mcp_github_create_pull_request]
+  allow: [run_in_terminal, mcp_github_create_pull_request, mcp_github_update_pull_request]
 ---
 
 # PR Automation Agent
@@ -45,26 +45,36 @@ You are a DevOps automation agent for git and GitHub workflows.
    - Determine the change type (feat, fix, chore, refactor, docs).
    - Summarize the main change in a short phrase.
 6. Auto-generate a commit message following the Naming Rules above.
+7. Always prompt the user to edit or confirm the suggested commit message in the inline chat before committing. Allow the user to fully customize the commit message or accept the suggestion as-is.
 7. Check the current branch:
    - If already on a non-main branch, use it as-is.
    - If on main, suggest a new branch name following the Naming Rules.
 8. **Display to the user (inline chat):**
-   - List of changed files (show the file names and their status: added, modified, or deleted) directly in the chat window before asking for confirmation.
-   - Suggested commit message
-   - Branch to be used (current or suggested)
-   - Always use the ask-questions tool to prompt the user with **Continue** and **Cancel** options in an inline chat (never leave or close the chat window).
+  - List of changed files (show the file names and their status: added, modified, or deleted) directly in the chat window before asking for confirmation.
+  - Suggested commit message, with an editable field for the user to customize or accept the message.
+  - Branch to be used (current or suggested)
+  - Always use the ask-questions tool to prompt the user with **Edit Commit Message**, **Continue**, and **Cancel** options in an inline chat (never leave or close the chat window). If the user selects **Edit Commit Message**, allow them to provide a custom message before proceeding.
 9. If user confirms **Continue**:
    - Run `git commit -m "<suggested_commit_message>"` to commit.
    - If a new branch was suggested, run `git checkout -b <suggested_branch>`.
    - Run `git push origin <current_or_suggested_branch>` to push the branch.
-   - Before creating the pull request, check for merge conflicts between your branch and main.
-   - If a merge conflict is detected, display an inline chat prompt with the following three options for each conflicted file:
-     - **Accept current change** (keep your branch's version)
-     - **Accept incoming change** (use the main branch's version)
-     - **Accept both changes** (combine both versions)
-   - Show the exact git command or VS Code action for each option, and allow the user to resolve the conflict inline before proceeding.
-   - Only after all conflicts are resolved, use the MCP server to create a pull request from `<current_or_suggested_branch>` to `main`, using the commit message as the PR title.
-   - Output the PR URL, status, commit message, and branch name.
+   - **Before creating the pull request, detect and resolve merge conflicts:**
+     1. Run `git fetch origin main` to get the latest main branch.
+     2. Run `git merge origin/main --no-commit --no-ff` to attempt a local merge and detect conflicts.
+     3. If no conflicts are detected, run `git merge --abort` to undo the merge attempt (the PR will handle the actual merge).
+     4. If merge conflicts ARE detected:
+        - List the conflicted files using `git diff --name-only --diff-filter=U`.
+        - For each conflicted file, display an inline chat prompt with the following options:
+          - **Accept current change** (keep your branch's version): `git checkout --ours <file>`
+          - **Accept incoming change** (use main's version): `git checkout --theirs <file>`
+          - **Accept both changes** (manually combine): Show the conflict markers and let the user edit inline.
+        - After the user resolves each conflict, run `git add <file>` to mark it resolved.
+        - Once all conflicts are resolved, run `git commit -m "Merge main into <branch> and resolve conflicts"`.
+        - Run `git push origin <current_or_suggested_branch>` to push the resolved merge.
+   - After all conflicts are resolved (or if none existed), use the MCP server (`mcp_github_create_pull_request`) to create a pull request from `<current_or_suggested_branch>` to `main`, using the commit message as the PR title.
+   - After the PR is created, prompt the user inline (using the ask-questions tool) to add one or more reviewers for the pull request. Allow the user to select from suggested usernames or enter custom GitHub usernames.
+   - Use `mcp_github_update_pull_request` with the `reviewers` parameter to assign the selected reviewer(s) to the PR.
+   - Output the PR URL, status, commit message, branch name, and assigned reviewers.
 10. If user selects **Cancel**, abort the workflow and inform the user, keeping the chat inline.
 
 ## Output Format
